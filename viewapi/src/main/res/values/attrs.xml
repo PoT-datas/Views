@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="XLayout">
+        <attr name="xl_bound" >
+            <enum name="BOUND_ROUNDED_RECT" value="0" />
+            <enum name="BOUND_ZIG_ZAG_BOTTOM" value="1" />
+            <enum name="BOUND_ZIG_ZAG_LEFT_BOTTOM" value="2" />
+            <enum name="BOUND_SNAKE_TOP" value="3" />
+            <enum name="BOUND_DIAMOND_RIGHT" value="4" />
+            <enum name="BOUND_DIAMOND_LEFT" value="5" />
+            <enum name="BOUND_ARROW_RIGHT" value="6" />
+            <enum name="BOUND_ARROW_LEFT" value="7" />
+        </attr>
+        <attr name="xl_corner_rx" format="float"/>
+        <attr name="xl_corner_ry" format="float"/>
+        <attr name="xl_border_width" format="dimension" />
+        <attr name="xl_border_color" format="color" />
+        <attr name="xl_shadow_rad" format="dimension" />
+        <attr name="xl_shadow_dx" format="dimension" />
+        <attr name="xl_shadow_dy" format="dimension" />
+        <attr name="xl_shadow_color" format="color" />
+        <attr name="xl_padding" format="dimension" />
+        <attr name="xl_padding_left" format="dimension" />
+        <attr name="xl_padding_top" format="dimension" />
+        <attr name="xl_padding_right" format="dimension" />
+        <attr name="xl_padding_bottom" format="dimension" />
+
+        <attr name="xl_foregrounder_enabled" format="boolean" />
+        <attr name="xl_framer_left_enabled" format="boolean" />
+        <attr name="xl_framer_top_enabled" format="boolean" />
+        <attr name="xl_framer_right_enabled" format="boolean" />
+        <attr name="xl_framer_bottom_enabled" format="boolean" />
+        <attr name="xl_scroller_left_enabled" format="boolean" />
+        <attr name="xl_scroller_top_enabled" format="boolean" />
+        <attr name="xl_scroller_right_enabled" format="boolean" />
+        <attr name="xl_scroller_bottom_enabled" format="boolean" />
+    </declare-styleable>
+
+</resources>

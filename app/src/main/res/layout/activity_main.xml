@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".test.MainActivity"
+    android:background="@color/colorPrimary">
+
+    <api.pot.view.xl.XLayout
+        android:id="@+id/cl"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="10dp"
+        android:layout_marginBottom="-200dp"
+        app:xl_bound="BOUND_ROUNDED_RECT"
+        app:xl_corner_rx="0.5"
+        app:xl_corner_ry="0.3"
+        app:xl_shadow_dy="-1dp"
+        app:xl_shadow_rad="1dp"
+        android:background="#fff">
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:src="@drawable/wizz" />
+
+        <ImageView
+            android:id="@+id/content"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            android:src="@drawable/hondo" />
+
+        <TextView
+            android:id="@+id/texto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="0dp"
+            android:layout_marginTop="200dp"
+            android:textSize="30sp"
+            android:text="PoT est une grande compagnie de developpement"/>
+
+        <TextView
+            android:id="@+id/textoo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="0dp"
+            android:layout_marginBottom="0dp"
+            android:textSize="30sp"
+            android:text="Mes API : l'avenir"/>
+
+    </api.pot.view.xl.XLayout>
+
+    <api.pot.view.xl.XLayout
+        android:id="@+id/xl"
+        android:visibility="visible"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="250dp"
+        android:padding="10dp"
+        app:xl_bound="BOUND_ZIG_ZAG_LEFT_BOTTOM"
+        app:xl_shadow_dy="1dp"
+        app:xl_shadow_rad="1dp"
+        app:xl_border_width="1dp">
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/gost"/>
+    </api.pot.view.xl.XLayout>
+
+</RelativeLayout>
