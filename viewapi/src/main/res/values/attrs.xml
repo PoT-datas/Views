@@ -11,6 +11,7 @@
             <enum name="BOUND_DIAMOND_LEFT" value="5" />
             <enum name="BOUND_ARROW_RIGHT" value="6" />
             <enum name="BOUND_ARROW_LEFT" value="7" />
+            <enum name="BOUND_CIRCLE" value="8" />
         </attr>
         <attr name="xl_corner_rx" format="float"/>
         <attr name="xl_corner_ry" format="float"/>

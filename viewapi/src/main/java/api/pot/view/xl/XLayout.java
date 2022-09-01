@@ -366,8 +366,13 @@ public class XLayout extends RelativeLayout {
         clipPath.addRoundRect(clipRectF, 0, 0, Path.Direction.CW);
 
         ///
+        calculateBound();
         clipBound = getBound(ibound, mClipBound);
         bound = getBound(ibound, mBound);
+        if(clipBound==null || bound==null) {
+            invalidate();
+            return;
+        }
         ///
 
         //canvas.clipPath(clipPath);
@@ -378,9 +383,9 @@ public class XLayout extends RelativeLayout {
             Paint p = new Paint();
             p.setStyle(Paint.Style.STROKE);
             p.setColor(shadowColor);
-            p.setStrokeWidth(shadowRad);
+            p.setStrokeWidth(Math.max(Math.max(shadowDx, shadowDy), shadowRad));
             p.setShadowLayer(shadowRad,shadowDx, shadowDy, shadowColor);
-            if(shadowRad>0) p.setMaskFilter(new BlurMaskFilter(shadowRad*2, BlurMaskFilter.Blur.NORMAL));
+            if(shadowRad>0) p.setMaskFilter(new BlurMaskFilter(Math.max(Math.max(shadowDx, shadowDy), shadowRad), BlurMaskFilter.Blur.NORMAL));
             canvas.drawPath(bound, p);
         }
         ///
@@ -430,14 +435,17 @@ public class XLayout extends RelativeLayout {
     private final int BOUND_DIAMOND_LEFT = 5;
     private final int BOUND_ARROW_RIGHT = 6;
     private final int BOUND_ARROW_LEFT = 7;
+    private final int BOUND_CIRCLE = 8;
     private Path getBound(int i, RectF rect) {
+        if(rect==null) return null;
+        //
         Path p = null;
         int rx = (int) (cornerRX*rect.width()/2);
         int ry = (int) (cornerRY*rect.height()/2);
         int offset;
         Point s;
         switch (i){
-            case BOUND_ROUNDED_RECT://BOUND_ROUNDED_RECT
+            case BOUND_ROUNDED_RECT:
                 p = new Path();
                 p.moveTo(rect.centerX(), rect.top);
                 p.lineTo(rect.left+rx, rect.top);
@@ -450,7 +458,7 @@ public class XLayout extends RelativeLayout {
                 p.quadTo(rect.right, rect.top, rect.right-rx, rect.top);
                 p.close();
                 break;
-            case BOUND_ZIG_ZAG_BOTTOM://BOUND_ZIG_ZAG_BOTTOM
+            case BOUND_ZIG_ZAG_BOTTOM:
                 int base = 9*getHeight()/10;
                 p = new Path();
                 p.moveTo(rect.right, rect.top+base);
@@ -459,15 +467,9 @@ public class XLayout extends RelativeLayout {
                 p.rLineTo(0, base);
                 p.quadTo(rect.left+rect.width()/4, rect.bottom, rect.centerX(), rect.top+base);
                 p.quadTo(rect.left+3*rect.width()/4, rect.top+base*2-rect.height(), rect.right, rect.top+base);
-                /*p.moveTo(getWidth(), base);
-                p.rLineTo(0, -base);
-                p.rLineTo(-getWidth(), 0);
-                p.rLineTo(0, base);
-                p.quadTo(getWidth()/4, getHeight(), getWidth()/2, base);
-                p.quadTo(3*getWidth()/4, base*2-getHeight(), getWidth(), base);*/
                 p.close();
                 break;
-            case BOUND_ZIG_ZAG_LEFT_BOTTOM://BOUND_ZIG_ZAG_LEFT_BOTTOM
+            case BOUND_ZIG_ZAG_LEFT_BOTTOM:
                 int b1 = getHeight()/4, b2 = getHeight()-b1;
                 p = new Path();
                 p.moveTo(rect.right, rect.top+b2);
@@ -477,16 +479,9 @@ public class XLayout extends RelativeLayout {
                 p.rQuadTo(b1/4, 3*b1/4, b1, b1);
                 p.rQuadTo(b1, b1/3, 3*b1/2, b1);
                 p.quadTo(rect.left+rect.width()/2+b1/2, rect.bottom, rect.right, rect.top+b2);
-                /*p.moveTo(getWidth(), b2);
-                p.rLineTo(0, -b2);
-                p.rLineTo(-getWidth(), 0);
-                p.rLineTo(0, b1);
-                p.rQuadTo(b1/4, 3*b1/4, b1, b1);
-                p.rQuadTo(b1, b1/3, 3*b1/2, b1);
-                p.quadTo(getWidth()/2+b1/2, getHeight(), getWidth(), b2);*/
                 p.close();
                 break;
-            case BOUND_SNAKE_TOP://BOUND_SNAKE_TOP
+            case BOUND_SNAKE_TOP:
                 offset = 1*getHeight()/10;
                 p = new Path();
                 p.moveTo(rect.left, rect.top+2*offset);
@@ -495,15 +490,9 @@ public class XLayout extends RelativeLayout {
                 p.quadTo(rect.right, rect.top+offset, rect.right, rect.top);
                 p.lineTo(rect.right, rect.bottom);
                 p.lineTo(rect.left, rect.bottom);
-                /*p.moveTo(0, 2*offset);
-                p.quadTo(0, offset, offset, offset);
-                p.lineTo(getWidth()-offset, offset);
-                p.quadTo(getWidth(), offset, getWidth(), 0);
-                p.lineTo(getWidth(), getHeight());
-                p.lineTo(0, getHeight());*/
                 p.close();
                 break;
-            case BOUND_DIAMOND_RIGHT://BOUND_DIAMOND_RIGHT
+            case BOUND_DIAMOND_RIGHT:
                 offset = (int) (1*rect.height()/4);
                 p = new Path();
                 p.moveTo(rect.left, rect.top+ry);
@@ -527,7 +516,7 @@ public class XLayout extends RelativeLayout {
                 p.quadTo(rect.left, rect.bottom-offset, s.x, s.y);
                 p.close();
                 break;
-            case BOUND_DIAMOND_LEFT://BOUND_DIAMOND_LEFT
+            case BOUND_DIAMOND_LEFT:
                 offset = (int) (1*rect.height()/5);
                 p = new Path();
                 s = getPointInRaw(rect.left, rect.top+offset, rect.left, rect.bottom, ry);
@@ -552,7 +541,7 @@ public class XLayout extends RelativeLayout {
                 p.quadTo(rect.left, rect.bottom, s.x, s.y);
                 p.close();
                 break;
-            case BOUND_ARROW_RIGHT://BOUND_ARROW_RIGHT
+            case BOUND_ARROW_RIGHT:
                 offset = (int) (1*rect.height()/2);
                 p = new Path();
                 p.moveTo(rect.left, rect.top+ry);
@@ -571,7 +560,7 @@ public class XLayout extends RelativeLayout {
                 p.quadTo(rect.left, rect.bottom, s.x, s.y);
                 p.close();
                 break;
-            case BOUND_ARROW_LEFT://BOUND_ARROW_LEFT
+            case BOUND_ARROW_LEFT:
                 offset = (int) (1*rect.height()/2);
                 p = new Path();
                 s = getPointInRaw(rect.left, rect.top+offset, rect.right, rect.top, rx);
@@ -591,6 +580,13 @@ public class XLayout extends RelativeLayout {
                 s = getPointInRaw(rect.left, rect.top+offset, rect.right, rect.top, rx);
                 //
                 p.quadTo(rect.left, rect.top+offset, s.x, s.y);
+                p.close();
+                break;
+            case BOUND_CIRCLE:
+                p = new Path();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    p.addArc(rect.left,rect.top,rect.right,rect.bottom,0,360);
+                }
                 p.close();
                 break;
         }
