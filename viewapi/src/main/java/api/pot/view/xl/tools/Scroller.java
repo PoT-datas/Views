@@ -14,6 +14,8 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.RelativeLayout;
 
+import api.pot.view.xl.XLayout;
+
 public class Scroller {
     private View view;
 
@@ -263,6 +265,7 @@ public class Scroller {
     }
 
     private RelativeLayout.LayoutParams checkMarginValue(RelativeLayout.LayoutParams margin, Side side) {
+        init();
         try {
             isDisplayed = true;
             int value = side== Side.LEFT?margin.leftMargin:side== Side.TOP?margin.topMargin:side== Side.RIGHT?margin.rightMargin:side== Side.BOTTOM?margin.bottomMargin:0;
@@ -306,7 +309,34 @@ public class Scroller {
         }
     }
 
+    public void tongleTop(float ratio) {
+        tongle(Side.TOP, ratio);
+    }
+
+    public void tongle(Side side, float ratio) {
+        final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
+        switch (side){
+            case TOP:{
+                show_valueAnimator = ValueAnimator.ofInt(layoutParams.topMargin, (int) (ratio*(view.getHeight()+layoutParams.topMargin)));
+                show_valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                        int d = (int) valueAnimator.getAnimatedValue();
+                        layoutParams.topMargin = d;
+                        view.setLayoutParams(checkMarginValue(layoutParams, Side.TOP));
+                    }
+                });
+                break;
+            }
+        }
+        show_valueAnimator.setDuration(TONGLE_DURATION);
+        show_valueAnimator.setInterpolator(new DecelerateInterpolator());
+        show_valueAnimator.start();
+    }
+
     public void show() {
+        if(view==null) return;
+
         final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
 
         show_valueAnimator = ValueAnimator.ofInt(layoutParams.topMargin, 2*view.getHeight()/3);
@@ -359,6 +389,10 @@ public class Scroller {
     public long MAX_MVT_DURATION;
     public float PIXELS_PER_SECOND;
     public float MAXIMUM_FING_VELOCITY;
+
+    public void setView(XLayout mView) {
+        view = mView;
+    }
 
     private enum Side{
         LEFT, TOP, RIGHT, BOTTOM;

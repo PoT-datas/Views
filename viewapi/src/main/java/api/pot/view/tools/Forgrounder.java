@@ -38,7 +38,7 @@ public class Forgrounder {
     //
     public long time = Global.foreground_anim_time;
     //
-    private int c_color = Color.rgb(rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+    private int c_color = Color.rgb(255, 255, 255);
     //
     public boolean isSelected = false;
     //
@@ -101,7 +101,7 @@ public class Forgrounder {
                 super.onAnimationStart(animation);
                 //touchUp = false;
                 setTouchUp(false);
-                c_color = Color.rgb(rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+                //c_color = Color.rgb(rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
                 c_alpha = alpha;
                 isPlaying = true;
             }
@@ -141,6 +141,10 @@ public class Forgrounder {
         progresser2.setInterpolator(new AccelerateInterpolator());
         //
         isInit = true;
+    }
+
+    public void setColor(int color) {
+        this.c_color = c_color;
     }
 
     public void setEnabled(boolean isEnabled) {
@@ -213,7 +217,10 @@ public class Forgrounder {
                     radius = Math.min(bounds.width()/2, bounds.height()/2);
                 radius*=2;
             }
-        }else return;
+        }else {
+            setTouchUp(true);
+            return;
+        }
         //
         init(bound);
         //
@@ -221,18 +228,15 @@ public class Forgrounder {
             if(!progresser.isRunning() && !progresser2.isRunning())
                 progresser.start();
         }else{
-            if(event.getAction()==MotionEvent.ACTION_UP/* || event.getAction()==MotionEvent.ACTION_MOVE ||
-                    event.getAction()==MotionEvent.ACTION_HOVER_MOVE*/){
+            /*if(event.getAction()==MotionEvent.ACTION_UP || event.getAction()==MotionEvent.ACTION_MOVE ||
+                    event.getAction()==MotionEvent.ACTION_HOVER_MOVE){*/
                 if(progresser.isRunning())
-                    //touchUp = true;
                     setTouchUp(true);
-                else {
-                    if(!isSelected)
+                else if(!isSelected)
                         progresser2.start();
-                }
                 if(event.getAction()==MotionEvent.ACTION_UP)
                     can_change_selected = true;
-            }
+            //}
         }
     }
 
@@ -253,7 +257,7 @@ public class Forgrounder {
 
     public void setTouchUp(boolean touchUp) {
         this.touchUp = touchUp;
-        if(this.touchUp==true) can_change_selected = true;
+        if(this.touchUp) can_change_selected = true;
     }
 
 

@@ -7,23 +7,16 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
-public class RecyclerViewXItemTouchListener  implements RecyclerView.OnItemTouchListener {
+public class XItemViewTouch  implements RecyclerView.OnItemTouchListener {
     private static final int SWIPE_MIN_DISTANCE = 120;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
     private static final int SWIPE_MAX_OFF_PATH = 250;
 
-    private OnTouchActionListener mOnTouchActionListener;
+    private XItemViewTouchListener mOnTouchActionListener;
     private GestureDetectorCompat mGestureDetector;
 
-    public static interface OnTouchActionListener {
-        void onLeftSwipe(View view, int position);
-        void onRightSwipe(View view, int position);
-        void onClick(View view, int position);
-        void onLongClick(View view, int position);
-    }
-
-    public RecyclerViewXItemTouchListener(Context context, final RecyclerView recyclerView,
-                            OnTouchActionListener onTouchActionListener){
+    public XItemViewTouch(Context context, final RecyclerView recyclerView,
+                          XItemViewTouchListener onTouchActionListener){
 
         mOnTouchActionListener = onTouchActionListener;
         mGestureDetector = new GestureDetectorCompat(context,new GestureDetector.SimpleOnGestureListener(){

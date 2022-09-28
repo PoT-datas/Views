@@ -38,7 +38,7 @@ public class BlurBuilder {
     }
 
     public static Bitmap blur(Context context, Bitmap image, float blurPercent) {
-        bitmap_scale = BITMAP_SCALE;
+        bitmap_scale = 0.2f;//BITMAP_SCALE;
         blur_radius = BLUR_RADIUS*blurPercent;
 
         int width = Math.round(image.getWidth() * bitmap_scale);
@@ -58,7 +58,7 @@ public class BlurBuilder {
         theIntrinsic.forEach(tmpOut);
         tmpOut.copyTo(outputBitmap);
 
-        return outputBitmap;
+        return Bitmap.createScaledBitmap(outputBitmap, (int) (width*1/bitmap_scale), (int) (height*1/bitmap_scale), false);//outputBitmap;
     }
 
 

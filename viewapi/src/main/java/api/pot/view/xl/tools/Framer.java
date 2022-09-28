@@ -33,7 +33,7 @@ public class Framer {
     private int mR=0;
     private int mB=0;
     //
-    public long time=300;
+    public long time=1000;//300
     private ValueAnimator progresser;
 
     private Scroller scroller;

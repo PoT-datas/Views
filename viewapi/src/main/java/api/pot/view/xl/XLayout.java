@@ -59,7 +59,7 @@ public class XLayout extends RelativeLayout {
     private int xlPaddingRight = 0;
     private int xlPaddingBottom = 0;
 
-    private Bitmap bmp;
+    private Bitmap mBitmap, blurBmp;
     private Canvas cvs;
 
     private int shadowRad=10, shadowDx=0, shadowDy=10, shadowColor= Color.BLACK;
@@ -68,11 +68,14 @@ public class XLayout extends RelativeLayout {
     private int borderColor = Color.RED;
     private float cornerRX = 0.5f;//0-1
     private float cornerRY = 0.2f;//0-1
+    private Paint shadowPaint;
+    private Paint borderPaint;
 
     private boolean isBlurCover = false;
     private float blurPercent = 0.5f;
     private RectF blurBound;
     private Path blurPath;
+    private Paint blurPaint = new Paint();
 
     private boolean isDefaultBound = true;
 
@@ -90,7 +93,7 @@ public class XLayout extends RelativeLayout {
 
 
 
-    //++++++++++++++++methodes+++++++++++++++++
+    //++++++++++++++++++++++++methodes++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public void setOnFgClickListener(@Nullable Forgrounder.OnClickListener l) {
         if(forgrounder==null) forgrounder = new Forgrounder(this);
@@ -125,6 +128,12 @@ public class XLayout extends RelativeLayout {
 
     public void setShadowRad(int shadowRad) {
         this.shadowRad = shadowRad;
+        setup();
+    }
+
+    public void setShadowRadRes(int resId) {
+        this.shadowRad = (int) getResources().getDimension(resId);
+        setup();
     }
 
     public void setShadowOffset(int shadowDx, int shadowDy) {
@@ -161,6 +170,11 @@ public class XLayout extends RelativeLayout {
     public void setXlPaddingBottom(int xlPaddingBottom) {
         if(xlPaddingBottom==XL_PADDING_NO_VALUE) return;
         this.xlPaddingBottom = xlPaddingBottom;
+        setup();
+    }
+
+    public void setXlPaddingBottomRes(int resId) {
+        setXlPaddingBottom((int) getResources().getDimension(resId));
     }
 
     //don't work! use touchableArea
@@ -227,14 +241,14 @@ public class XLayout extends RelativeLayout {
     public void setBlurBound(RectF blurBound) {
         this.blurBound = blurBound;
         this.blurPath = null;
-        bmp = null;
+        blurBmp = null;
         setup();
     }
 
     public void setBlurPath(Path blurPath) {
         this.blurPath = blurPath;
         this.blurBound = null;
-        bmp = null;
+        blurBmp = null;
         setup();
     }
 
@@ -320,13 +334,121 @@ public class XLayout extends RelativeLayout {
 
         calculateBound();
 
-        //initBound();
-
-        //bound = bounds.get(ibound);
-
         bound = getBound(ibound, mBound);
 
         invalidate();
+    }
+
+    private float blurAlpha = 0;
+    private long blurAnimDuration = 1000;
+    private long blurAnimPeriod = 50;
+    @Override
+    public void draw(Canvas canvas) {
+        if(isBlurCover && blurBmp!=null && mBitmap!=null){
+            canvas.drawBitmap(mBitmap, 0, 0, null);
+            onDrawForeground(canvas);
+            return;
+        }
+
+        int save = canvas.save();
+
+        ///
+        if(clipBound==null || bound==null){
+            calculateBound();
+            clipBound = getBound(ibound, mClipBound);
+            bound = getBound(ibound, mBound);
+        }
+        if(clipBound==null || bound==null) {
+            invalidate();
+            return;
+        }
+        ///
+
+        //canvas.clipPath(clipPath);
+        canvas.clipPath(clipBound);
+
+        ///shadow
+        if(shadowRad>0){
+            if(shadowPaint==null){
+                shadowPaint = new Paint();
+                shadowPaint.setStyle(Paint.Style.STROKE);
+                shadowPaint.setColor(shadowColor);
+                shadowPaint.setStrokeWidth(Math.max(Math.max(shadowDx, shadowDy), shadowRad));
+                shadowPaint.setShadowLayer(shadowRad,shadowDx, shadowDy, shadowColor);
+                if(shadowRad>0) shadowPaint.setMaskFilter(new BlurMaskFilter(Math.max(Math.max(shadowDx, shadowDy), shadowRad),
+                        BlurMaskFilter.Blur.NORMAL));
+            }
+            canvas.drawPath(bound, shadowPaint);
+        }
+        ///
+
+        canvas.clipPath(bound);
+
+        super.draw(canvas);
+
+        ///blur
+        if(isBlurCover && blurBmp==null){
+            mBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
+            cvs = new Canvas(mBitmap);
+            super.draw(cvs);
+            blurBmp = Bitmap.createBitmap(mBitmap);
+            //
+            if(blurPath!=null) BlurBuilder.blur(getContext(), blurBmp, blurPercent,blurPath);
+            else if(blurBound!=null) BlurBuilder.blur(getContext(), blurBmp, blurPercent,blurBound);
+            else blurBmp = BlurBuilder.blur(getContext(), blurBmp, blurPercent);
+            //
+            blurPaint.setShader(new BitmapShader(blurBmp, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
+            blurPaint.setAlpha((int) (blurAlpha*255));
+            //
+            canvas.drawPath(bound, blurPaint);
+            //
+            if(1>blurAlpha) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        blurAlpha += 1f/(blurAnimDuration/blurAnimPeriod);
+                        invalidate();
+                    }
+                }, blurAnimPeriod);
+            }
+        }
+        ///
+
+        ///bodure
+        if(borderWidth>0){
+            if(borderPaint==null){
+                borderPaint = new Paint();
+                ///
+                if(borderSoftness>0) borderPaint.setMaskFilter(new BlurMaskFilter(borderSoftness, BlurMaskFilter.Blur.NORMAL));
+                ///
+                borderPaint.setStyle(Paint.Style.STROKE);
+                borderPaint.setColor(borderColor);
+                borderPaint.setStrokeWidth(borderWidth);
+            }
+            canvas.drawPath(bound, borderPaint);
+        }
+        ///
+
+        canvas.restoreToCount(save);
+    }
+
+    @Override
+    public void onDrawForeground(Canvas canvas) {
+        super.onDrawForeground(canvas);
+        if(forgrounder!=null)forgrounder.update(canvas);
+        //
+        blurPaint.setAlpha((int) (blurAlpha*255));
+        canvas.drawPath(bound, blurPaint);
+        if(1>blurAlpha && blurBmp!=null) {
+            new Handler().postDelayed(new Runnable() {
+                @RequiresApi(api = Build.VERSION_CODES.M)
+                @Override
+                public void run() {
+                    blurAlpha += 1f/(blurAnimDuration/blurAnimPeriod);
+                    invalidate();
+                }
+            }, blurAnimPeriod);
+        }
     }
 
     @Override
@@ -350,83 +472,6 @@ public class XLayout extends RelativeLayout {
                 mClipBound.right-xlPaddingRight, mClipBound.bottom-xlPaddingBottom);
     }
 
-    Paint blurPaint = new Paint();
-    @Override
-    public void draw(Canvas canvas) {
-
-        Rect clipRect = new Rect();
-        RectF clipRectF = new RectF();
-        Path clipPath = new Path();
-
-        int save = canvas.save();
-
-        canvas.getClipBounds(clipRect);
-        clipRectF.set(clipRect.left, clipRect.top, clipRect.right,
-                clipRect.bottom);
-        clipPath.addRoundRect(clipRectF, 0, 0, Path.Direction.CW);
-
-        ///
-        calculateBound();
-        clipBound = getBound(ibound, mClipBound);
-        bound = getBound(ibound, mBound);
-        if(clipBound==null || bound==null) {
-            invalidate();
-            return;
-        }
-        ///
-
-        //canvas.clipPath(clipPath);
-        canvas.clipPath(clipBound);
-
-        ///shadow
-        if(shadowRad>0){
-            Paint p = new Paint();
-            p.setStyle(Paint.Style.STROKE);
-            p.setColor(shadowColor);
-            p.setStrokeWidth(Math.max(Math.max(shadowDx, shadowDy), shadowRad));
-            p.setShadowLayer(shadowRad,shadowDx, shadowDy, shadowColor);
-            if(shadowRad>0) p.setMaskFilter(new BlurMaskFilter(Math.max(Math.max(shadowDx, shadowDy), shadowRad), BlurMaskFilter.Blur.NORMAL));
-            canvas.drawPath(bound, p);
-        }
-        ///
-
-        canvas.clipPath(bound);
-
-        super.draw(canvas);
-
-        ///blur
-        if(isBlurCover && bmp==null){
-            bmp = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
-            cvs = new Canvas(bmp);
-            super.draw(cvs);
-            //
-            if(blurPath!=null) BlurBuilder.blur(getContext(), bmp, blurPercent,blurPath);
-            else if(blurBound!=null) BlurBuilder.blur(getContext(), bmp, blurPercent,blurBound);
-            else bmp = BlurBuilder.blur(getContext(), bmp, blurPercent);
-            //
-            blurPaint.setShader(new BitmapShader(bmp, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
-            canvas.drawPath(bound, blurPaint);
-        }else if(isBlurCover){
-            canvas.drawPath(bound, blurPaint);
-        }
-        ///
-
-        ///bodure
-        if(borderWidth>0){
-            Paint p = new Paint();
-            ///
-            if(borderSoftness>0) p.setMaskFilter(new BlurMaskFilter(borderSoftness, BlurMaskFilter.Blur.NORMAL));
-            ///
-            p.setStyle(Paint.Style.STROKE);
-            p.setColor(borderColor);
-            p.setStrokeWidth(borderWidth);
-            canvas.drawPath(bound, p);
-        }
-        ///
-
-        canvas.restoreToCount(save);
-    }
-
     private final int BOUND_ROUNDED_RECT = 0;
     private final int BOUND_ZIG_ZAG_BOTTOM = 1;
     private final int BOUND_ZIG_ZAG_LEFT_BOTTOM = 2;
@@ -436,6 +481,7 @@ public class XLayout extends RelativeLayout {
     private final int BOUND_ARROW_RIGHT = 6;
     private final int BOUND_ARROW_LEFT = 7;
     private final int BOUND_CIRCLE = 8;
+    private final int BOUND_NIKE_LEFT = 9;
     private Path getBound(int i, RectF rect) {
         if(rect==null) return null;
         //
@@ -459,7 +505,7 @@ public class XLayout extends RelativeLayout {
                 p.close();
                 break;
             case BOUND_ZIG_ZAG_BOTTOM:
-                int base = 9*getHeight()/10;
+                int base = (int) (9*rect.height()/10);
                 p = new Path();
                 p.moveTo(rect.right, rect.top+base);
                 p.rLineTo(0, -base);
@@ -470,7 +516,7 @@ public class XLayout extends RelativeLayout {
                 p.close();
                 break;
             case BOUND_ZIG_ZAG_LEFT_BOTTOM:
-                int b1 = getHeight()/4, b2 = getHeight()-b1;
+                int b1 = (int) (rect.height()/4), b2 = (int) (rect.height()-b1);
                 p = new Path();
                 p.moveTo(rect.right, rect.top+b2);
                 p.rLineTo(0, -b2);
@@ -482,7 +528,7 @@ public class XLayout extends RelativeLayout {
                 p.close();
                 break;
             case BOUND_SNAKE_TOP:
-                offset = 1*getHeight()/10;
+                offset = (int) (1*rect.height()/10);
                 p = new Path();
                 p.moveTo(rect.left, rect.top+2*offset);
                 p.quadTo(rect.left, rect.top+offset, rect.left+offset, rect.top+offset);
@@ -589,6 +635,17 @@ public class XLayout extends RelativeLayout {
                 }
                 p.close();
                 break;
+            case BOUND_NIKE_LEFT:
+                offset = (int) (2*rect.height()/5);
+                p = new Path();
+                p.moveTo(rect.left, rect.bottom-offset);
+                p.lineTo(rect.left, rect.top);
+                p.lineTo(rect.right, rect.top);
+                p.lineTo(rect.right, rect.bottom-offset/2);
+                p.lineTo(rect.left+offset, rect.bottom-offset/5);
+                p.quadTo(rect.left, rect.bottom, rect.left, rect.bottom-offset);
+                p.close();
+                break;
         }
         return p;
     }
@@ -609,152 +666,10 @@ public class XLayout extends RelativeLayout {
         return (float) Math.sqrt(Math.pow(vector.x, 2)+Math.pow(vector.y, 2));
     }
 
-    private void initBound() {
-        bounds = new ArrayList<>();
-
-        Path p;/*
-        //
-        int rx = (int) (cornerRX*mBound.width()/2);
-        int ry = (int) (cornerRY*mBound.height()/2);
-        //
-        p = new Path();
-        p.moveTo(mBound.centerX(), mBound.top);
-        p.lineTo(mBound.left+rx, mBound.top);
-        p.quadTo(mBound.left, mBound.top, mBound.left, mBound.top+ry);
-        p.lineTo(mBound.left, mBound.bottom-ry);
-        p.quadTo(mBound.left, mBound.bottom, mBound.left+rx, mBound.bottom);
-        p.lineTo(mBound.right-rx, mBound.bottom);
-        p.quadTo(mBound.right, mBound.bottom, mBound.right, mBound.bottom-ry);
-        p.lineTo(mBound.right, mBound.top+ry);
-        p.quadTo(mBound.right, mBound.top, mBound.right-rx, mBound.top);
-        p.close();
-        //
-        bounds.add(p);*/
-        //
-        /*int base = 9*getHeight()/10;
-        p = new Path();
-        p.moveTo(getWidth(), base);
-        p.rLineTo(0, -base);
-        p.rLineTo(-getWidth(), 0);
-        p.rLineTo(0, base);
-        p.quadTo(getWidth()/4, getHeight(), getWidth()/2, base);
-        p.quadTo(3*getWidth()/4, base*2-getHeight(), getWidth(), base);
-        p.close();
-        //
-        bounds.add(p);*/
-        //
-        /*int b1 = getHeight()/4, b2 = getHeight()-b1;
-        p = new Path();
-        p.moveTo(getWidth(), b2);
-        p.rLineTo(0, -b2);
-        p.rLineTo(-getWidth(), 0);
-        p.rLineTo(0, b1);
-        p.rQuadTo(b1/4, 3*b1/4, b1, b1);
-        p.rQuadTo(b1, b1/3, 3*b1/2, b1);
-        p.quadTo(getWidth()/2+b1/2, getHeight(), getWidth(), b2);
-        p.close();
-        //
-        bounds.add(p);*/
-        //
-        /*int offset = 1*getHeight()/10;
-        p = new Path();
-        p.moveTo(0, 2*offset);
-        p.quadTo(0, offset, offset, offset);
-        p.lineTo(getWidth()-offset, offset);
-        p.quadTo(getWidth(), offset, getWidth(), 0);
-        p.lineTo(getWidth(), getHeight());
-        p.lineTo(0, getHeight());
-        p.close();
-        //
-        bounds.add(p);*/
-        //
-        /*offset = (int) (1*mBound.height()/4);
-        p = new Path();
-        p.moveTo(mBound.left, mBound.top+ry);
-        p.quadTo(mBound.left, mBound.top, mBound.left+rx, mBound.top+ry);
-        p.lineTo(mBound.right-rx, mBound.top+offset-ry);
-        p.quadTo(mBound.right, mBound.top+offset, mBound.right, mBound.top+offset+ry);
-        p.lineTo(mBound.right, mBound.bottom);
-        p.lineTo(mBound.left, mBound.bottom-offset);
-        p.close();
-        //
-        bounds.add(p);*/
-        //
-        /*offset = (int) (1*mBound.height()/5);
-        p = new Path();
-        p.moveTo(mBound.left, mBound.top+offset);
-        p.lineTo(mBound.right, mBound.top);
-        p.lineTo(mBound.right, mBound.bottom-offset);
-        p.lineTo(mBound.left, mBound.bottom);
-        p.close();
-        //
-        bounds.add(p);
-        //
-        offset = (int) (1*mBound.height()/2);
-        p = new Path();
-        p.moveTo(mBound.left, mBound.top);
-        p.lineTo(mBound.right, mBound.top+offset);
-        p.lineTo(mBound.left, mBound.bottom);
-        p.close();
-        //
-        bounds.add(p);
-        //
-        offset = (int) (1*mBound.height()/2);
-        p = new Path();
-        p.moveTo(mBound.left, mBound.top+offset);
-        p.lineTo(mBound.right, mBound.top);
-        p.lineTo(mBound.right, mBound.bottom);
-        p.close();
-        //
-        bounds.add(p);*/
-    }
-
-    /*@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
-    @Override
-    public void draw(Canvas canvas) {
-        bmp = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
-        cvs = new Canvas(bmp);
-
-        super.draw(cvs);
-
-        //update blur
-        if (isBlurCover){
-            if(blurPath!=null) BlurBuilder.blur(getContext(), bmp, blurPercent,blurPath);
-            else if(blurBound!=null) BlurBuilder.blur(getContext(), bmp, blurPercent,blurBound);
-            else bmp = BlurBuilder.blur(getContext(), bmp, blurPercent);
-        }
-
-        Paint p = new Paint();
-        p.setShader(new BitmapShader(bmp, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
-        p.setShadowLayer(shadowRad,shadowDx, shadowDy, shadowColor);
-        //
-        canvas.drawPath(bound, p);
-        //
-        if(borderWidth>0){
-            p = new Paint();
-            p.setStyle(Paint.Style.STROKE);
-            p.setColor(borderColor);
-            p.setStrokeWidth(borderWidth);
-            canvas.drawPath(bound, p);
-        }
-
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                invalidate();
-            }
-        }, 10);
-    }*/
-
-    @Override
-    public void onDrawForeground(Canvas canvas) {
-        super.onDrawForeground(canvas);
-        forgrounder.update(canvas);
-    }
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if(forgrounder==null || framer==null || scroller==null) return false;
+
         if (inTouchableArea(event.getX(), event.getY()))
             forgrounder.onTouch(event, new RectF(0, 0, getWidth(), getHeight()));
         else
@@ -765,7 +680,7 @@ public class XLayout extends RelativeLayout {
             scroller.onTouch(event);
         }
         //
-        return inTouchableArea(event.getX(), event.getY()) && ( super.onTouchEvent(event) || forgrounder.isEnabled || framer.isEnabled || scroller.isEnabled);
+        return inTouchableArea(event.getX(), event.getY()) && ( /**/super.onTouchEvent(event) || forgrounder.isEnabled || framer.isEnabled || scroller.isEnabled);
     }
 
     private boolean inTouchableArea(float x, float y) {
@@ -781,6 +696,7 @@ public class XLayout extends RelativeLayout {
     }
 
     public Scroller getScroller() {
+        scroller.setView(this);
         return scroller;
     }
 
@@ -836,5 +752,16 @@ public class XLayout extends RelativeLayout {
             //deprecated in API 26
             v.vibrate(ERROR_DURATION);
         }
+    }
+
+    public void setMargin(int left, int top, int right, int bottom) {
+        try {
+            LayoutParams layoutParams = (LayoutParams) getLayoutParams();
+            layoutParams.leftMargin = left;
+            layoutParams.topMargin = top;
+            layoutParams.rightMargin = right;
+            layoutParams.bottomMargin = bottom;
+            setLayoutParams(layoutParams);
+        }catch (Exception e){}
     }
 }
