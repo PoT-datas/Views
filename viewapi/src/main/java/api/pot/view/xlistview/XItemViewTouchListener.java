@@ -7,4 +7,5 @@ public interface XItemViewTouchListener {
     void onRightSwipe(View view, int position);
     void onClick(View view, int position);
     void onLongClick(View view, int position);
+    void onTouchDown(View view, int position);
 }

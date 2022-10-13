@@ -38,7 +38,7 @@ public class BlurBuilder {
     }
 
     public static Bitmap blur(Context context, Bitmap image, float blurPercent) {
-        bitmap_scale = 0.2f;//BITMAP_SCALE;
+        bitmap_scale = 0.5f;//BITMAP_SCALE;
         blur_radius = BLUR_RADIUS*blurPercent;
 
         int width = Math.round(image.getWidth() * bitmap_scale);

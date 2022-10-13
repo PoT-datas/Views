@@ -38,7 +38,7 @@ import java.util.List;
 
 import static api.pot.view.tools.Global.getViewBoundFrom;
 
-@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+@SuppressLint("NewApi")
 public class XLayout extends RelativeLayout {
     private Forgrounder forgrounder;
     private Framer framer;
@@ -200,6 +200,8 @@ public class XLayout extends RelativeLayout {
 
     public void setBlurCover(boolean blurCover) {
         isBlurCover = blurCover;
+        blurBmp = null;
+        mBitmap = null;
         setup();
     }
 
@@ -344,20 +346,15 @@ public class XLayout extends RelativeLayout {
     private long blurAnimPeriod = 50;
     @Override
     public void draw(Canvas canvas) {
-        if(isBlurCover && blurBmp!=null && mBitmap!=null){
-            canvas.drawBitmap(mBitmap, 0, 0, null);
-            onDrawForeground(canvas);
-            return;
-        }
 
         int save = canvas.save();
 
         ///
-        if(clipBound==null || bound==null){
+        //if(clipBound==null || bound==null){
             calculateBound();
             clipBound = getBound(ibound, mClipBound);
             bound = getBound(ibound, mBound);
-        }
+        //}
         if(clipBound==null || bound==null) {
             invalidate();
             return;
@@ -384,6 +381,14 @@ public class XLayout extends RelativeLayout {
 
         canvas.clipPath(bound);
 
+        if(isBlurCover && blurBmp!=null && mBitmap!=null){
+            canvas.drawBitmap(mBitmap, 0, 0, null);
+            onDrawForeground(canvas);
+            //
+            canvas.restoreToCount(save);
+            return;
+        }
+
         super.draw(canvas);
 
         ///blur
@@ -398,19 +403,18 @@ public class XLayout extends RelativeLayout {
             else blurBmp = BlurBuilder.blur(getContext(), blurBmp, blurPercent);
             //
             blurPaint.setShader(new BitmapShader(blurBmp, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
+            blurAlpha = 0;
             blurPaint.setAlpha((int) (blurAlpha*255));
             //
             canvas.drawPath(bound, blurPaint);
             //
-            if(1>blurAlpha) {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        blurAlpha += 1f/(blurAnimDuration/blurAnimPeriod);
-                        invalidate();
-                    }
-                }, blurAnimPeriod);
-            }
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    blurAlpha += 1f/(blurAnimDuration/blurAnimPeriod);
+                    invalidate();
+                }
+            }, blurAnimPeriod);
         }
         ///
 
@@ -437,17 +441,19 @@ public class XLayout extends RelativeLayout {
         super.onDrawForeground(canvas);
         if(forgrounder!=null)forgrounder.update(canvas);
         //
-        blurPaint.setAlpha((int) (blurAlpha*255));
-        canvas.drawPath(bound, blurPaint);
-        if(1>blurAlpha && blurBmp!=null) {
-            new Handler().postDelayed(new Runnable() {
-                @RequiresApi(api = Build.VERSION_CODES.M)
-                @Override
-                public void run() {
-                    blurAlpha += 1f/(blurAnimDuration/blurAnimPeriod);
-                    invalidate();
-                }
-            }, blurAnimPeriod);
+        if (isBlurCover && blurBmp!=null && mBitmap!=null){
+            blurPaint.setAlpha((int) (blurAlpha*255));
+            canvas.drawPath(bound, blurPaint);
+            if(1>blurAlpha && blurBmp!=null) {
+                new Handler().postDelayed(new Runnable() {
+                    @RequiresApi(api = Build.VERSION_CODES.M)
+                    @Override
+                    public void run() {
+                        blurAlpha += 1f/(blurAnimDuration/blurAnimPeriod);
+                        invalidate();
+                    }
+                }, blurAnimPeriod);
+            }
         }
     }
 
@@ -688,6 +694,7 @@ public class XLayout extends RelativeLayout {
     }
 
     public Forgrounder getForgrounder() {
+        if(forgrounder==null) forgrounder = new Forgrounder(this);
         return forgrounder;
     }
 
@@ -696,7 +703,8 @@ public class XLayout extends RelativeLayout {
     }
 
     public Scroller getScroller() {
-        scroller.setView(this);
+        if(scroller==null) scroller = new Scroller(this);
+        else scroller.setView(this);
         return scroller;
     }
 

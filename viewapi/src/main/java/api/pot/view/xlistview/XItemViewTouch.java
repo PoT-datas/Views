@@ -22,6 +22,15 @@ public class XItemViewTouch  implements RecyclerView.OnItemTouchListener {
         mGestureDetector = new GestureDetectorCompat(context,new GestureDetector.SimpleOnGestureListener(){
 
             @Override
+            public boolean onDown(MotionEvent e) {
+                // Find the item view that was swiped based on the coordinates
+                View child = recyclerView.findChildViewUnder(e.getX(), e.getY());
+                int childPosition = recyclerView.getChildPosition(child);
+                mOnTouchActionListener.onTouchDown(child, childPosition);
+                return super.onDown(e);
+            }
+
+            @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
                 // Find the item view that was swiped based on the coordinates
                 View child = recyclerView.findChildViewUnder(e.getX(), e.getY());

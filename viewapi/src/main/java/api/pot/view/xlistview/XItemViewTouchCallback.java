@@ -22,4 +22,9 @@ public class XItemViewTouchCallback implements XItemViewTouchListener{
     public void onLongClick(View view, int position) {
 
     }
+
+    @Override
+    public void onTouchDown(View view, int position) {
+
+    }
 }

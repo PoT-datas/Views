@@ -144,7 +144,7 @@ public class Forgrounder {
     }
 
     public void setColor(int color) {
-        this.c_color = c_color;
+        this.c_color = color;
     }
 
     public void setEnabled(boolean isEnabled) {
