@@ -13,11 +13,17 @@ import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import api.pot.view.xl.XLayout;
 
+import static api.pot.view.xl.tools.Side.BOTTOM;
+import static api.pot.view.xl.tools.Side.TOP;
+
 public class Scroller {
     private View view;
+
+    private XListener xListener;
 
     private RectF VIEW_BOUNDS;
 
@@ -92,6 +98,18 @@ public class Scroller {
         VIEW_BOUNDS = new RectF(0, 0, view.getWidth(), view.getHeight());
     }
 
+    public void setListener(XListener xListener) {
+        this.xListener = xListener;
+        //notifyListener();
+    }
+
+    private void notifyListener() {
+        if(xListener!=null){
+            final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
+            xListener.onMarginChange(layoutParams.leftMargin, layoutParams.topMargin, layoutParams.rightMargin, layoutParams.bottomMargin);
+        }
+    }
+
     private void listener() {
         gestureDetectorLeft = new GestureDetector(view.getContext(), new GestureDetector.SimpleOnGestureListener(){
             @Override
@@ -100,6 +118,7 @@ public class Scroller {
                 //layoutParams.leftMargin -= distanceX;
                 layoutParams.leftMargin +=  e2.getX()-e1.getX();
                 view.setLayoutParams(checkMarginValue(layoutParams, Side.LEFT));
+                notifyListener();
                 return true;
             }
 
@@ -111,7 +130,7 @@ public class Scroller {
 
             @Override
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                if(velocityY!=0){
+                /*if(velocityY!=0){
                     float velocityPercentX = velocityX/MAXIMUM_FING_VELOCITY;
                     float normalizedVelocityX = velocityPercentX * PIXELS_PER_SECOND;
                     long duration = (long) Math.abs(MAX_MVT_DURATION*normalizedVelocityX);
@@ -132,7 +151,7 @@ public class Scroller {
                     fling_valueAnimator.setDuration(duration);
                     fling_valueAnimator.setInterpolator(new DecelerateInterpolator());
                     fling_valueAnimator.start();
-                }
+                }*/
                 return super.onFling(e1, e2, velocityX, velocityY);
             }
         });
@@ -141,7 +160,8 @@ public class Scroller {
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
                 RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
                 layoutParams.topMargin += e2.getY() - e1.getY();
-                view.setLayoutParams(checkMarginValue(layoutParams, Side.TOP));
+                view.setLayoutParams(checkMarginValue(layoutParams, TOP));
+                notifyListener();
                 return true;
             }
 
@@ -153,7 +173,7 @@ public class Scroller {
 
             @Override
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                if(velocityY!=0){
+                /*if(velocityY!=0){
                     float velocityPercentY = velocityY/MAXIMUM_FING_VELOCITY;
                     float normalizedVelocityY = velocityPercentY * PIXELS_PER_SECOND;
                     long duration = (long) Math.abs(MAX_MVT_DURATION*normalizedVelocityY);
@@ -174,7 +194,7 @@ public class Scroller {
                     fling_valueAnimator.setDuration(duration);
                     fling_valueAnimator.setInterpolator(new DecelerateInterpolator());
                     fling_valueAnimator.start();
-                }
+                }*/
                 return super.onFling(e1, e2, velocityX, velocityY);
             }
         });
@@ -184,6 +204,7 @@ public class Scroller {
                 RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
                 layoutParams.rightMargin += distanceX;
                 view.setLayoutParams(checkMarginValue(layoutParams, Side.RIGHT));
+                notifyListener();
                 return true;
             }
 
@@ -195,7 +216,7 @@ public class Scroller {
 
             @Override
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                if(velocityY!=0){
+                /*if(velocityY!=0){
                     float velocityPercentX = velocityX/MAXIMUM_FING_VELOCITY;
                     float normalizedVelocityX = velocityPercentX * PIXELS_PER_SECOND;
                     long duration = (long) Math.abs(MAX_MVT_DURATION*normalizedVelocityX);
@@ -216,7 +237,7 @@ public class Scroller {
                     fling_valueAnimator.setDuration(duration);
                     fling_valueAnimator.setInterpolator(new DecelerateInterpolator());
                     fling_valueAnimator.start();
-                }
+                }*/
                 return super.onFling(e1, e2, velocityX, velocityY);
             }
         });
@@ -226,6 +247,7 @@ public class Scroller {
                 RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
                 layoutParams.bottomMargin += e1.getY() - e2.getY();
                 view.setLayoutParams(checkMarginValue(layoutParams, Side.BOTTOM));
+                notifyListener();
                 return true;
             }
 
@@ -237,7 +259,7 @@ public class Scroller {
 
             @Override
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                if(velocityY!=0){
+                /*if(velocityY!=0){
                     float velocityPercentY = velocityY/MAXIMUM_FING_VELOCITY;
                     float normalizedVelocityY = velocityPercentY * PIXELS_PER_SECOND;
                     long duration = (long) Math.abs(MAX_MVT_DURATION*normalizedVelocityY);
@@ -258,27 +280,56 @@ public class Scroller {
                     fling_valueAnimator.setDuration(duration);
                     fling_valueAnimator.setInterpolator(new DecelerateInterpolator());
                     fling_valueAnimator.start();
-                }
+                }*/
                 return super.onFling(e1, e2, velocityX, velocityY);
             }
         });
     }
 
+    private RelativeLayout.LayoutParams checkMarginValue(RelativeLayout.LayoutParams margin, Side side, Integer VIEW_MIN_MARGIN) {
+        return checkMarginValue(margin, side, VIEW_MIN_MARGIN, null);
+    }
+
     private RelativeLayout.LayoutParams checkMarginValue(RelativeLayout.LayoutParams margin, Side side) {
-        init();
+        return checkMarginValue(margin, side, null, null);
+        /*init();
         try {
             isDisplayed = true;
-            int value = side== Side.LEFT?margin.leftMargin:side== Side.TOP?margin.topMargin:side== Side.RIGHT?margin.rightMargin:side== Side.BOTTOM?margin.bottomMargin:0;
-            float VIEW_MIN_MARGIN = side== Side.LEFT?VIEW_BOUNDS.left:side== Side.TOP?VIEW_BOUNDS.top:side== Side.RIGHT?VIEW_BOUNDS.left:side== Side.BOTTOM?VIEW_BOUNDS.top:0;
-            float VIEW_MAX_MARGIN = side== Side.LEFT?VIEW_BOUNDS.right:side== Side.TOP?VIEW_BOUNDS.bottom:side== Side.RIGHT?VIEW_BOUNDS.right:side== Side.BOTTOM?VIEW_BOUNDS.bottom:0;
+            int value = side== Side.LEFT?margin.leftMargin:side== TOP?margin.topMargin:side== Side.RIGHT?margin.rightMargin:side== Side.BOTTOM?margin.bottomMargin:0;
+            float VIEW_MIN_MARGIN = side== Side.LEFT?VIEW_BOUNDS.left:side== TOP?VIEW_BOUNDS.top:side== Side.RIGHT?VIEW_BOUNDS.left:side== Side.BOTTOM?VIEW_BOUNDS.top:0;
+            float VIEW_MAX_MARGIN = side== Side.LEFT?VIEW_BOUNDS.right:side== TOP?VIEW_BOUNDS.bottom:side== Side.RIGHT?VIEW_BOUNDS.right:side== Side.BOTTOM?VIEW_BOUNDS.bottom:0;
             if (VIEW_MIN_MARGIN > value){
                 if(side== Side.LEFT) margin.leftMargin = (int) VIEW_MIN_MARGIN;
-                if(side== Side.TOP) margin.topMargin = (int) VIEW_MIN_MARGIN;
+                if(side== TOP) margin.topMargin = (int) VIEW_MIN_MARGIN;
                 if(side== Side.RIGHT) margin.rightMargin = (int) VIEW_MIN_MARGIN;
                 if(side== Side.BOTTOM) margin.bottomMargin = (int) VIEW_MIN_MARGIN;
             }else if (value > VIEW_MAX_MARGIN){
                 if(side== Side.LEFT) margin.leftMargin = (int) VIEW_MAX_MARGIN;
-                if(side== Side.TOP) margin.topMargin = (int) VIEW_MAX_MARGIN;
+                if(side== TOP) margin.topMargin = (int) VIEW_MAX_MARGIN;
+                if(side== Side.RIGHT) margin.rightMargin = (int) VIEW_MAX_MARGIN;
+                if(side== Side.BOTTOM) margin.bottomMargin = (int) VIEW_MAX_MARGIN;
+                isDisplayed = false;
+            }
+        }catch (Exception e){}
+        return margin;*/
+    }
+
+    private RelativeLayout.LayoutParams checkMarginValue(RelativeLayout.LayoutParams margin, Side side,
+                                                         Integer VIEW_MIN_MARGIN, Integer VIEW_MAX_MARGIN) {
+        init();
+        try {
+            isDisplayed = true;
+            int value = side== Side.LEFT?margin.leftMargin:side== TOP?margin.topMargin:side== Side.RIGHT?margin.rightMargin:side== Side.BOTTOM?margin.bottomMargin:0;
+            if(VIEW_MIN_MARGIN==null) VIEW_MIN_MARGIN = (int)(side== Side.LEFT?VIEW_BOUNDS.left:side== TOP?VIEW_BOUNDS.top:side== Side.RIGHT?VIEW_BOUNDS.left:side== Side.BOTTOM?VIEW_BOUNDS.top:0);
+            if(VIEW_MAX_MARGIN==null) VIEW_MAX_MARGIN = (int)(side== Side.LEFT?VIEW_BOUNDS.right:side== TOP?VIEW_BOUNDS.bottom:side== Side.RIGHT?VIEW_BOUNDS.right:side== Side.BOTTOM?VIEW_BOUNDS.bottom:0);
+            if (VIEW_MIN_MARGIN > value){
+                if(side== Side.LEFT) margin.leftMargin = (int) VIEW_MIN_MARGIN;
+                if(side== TOP) margin.topMargin = (int) VIEW_MIN_MARGIN;
+                if(side== Side.RIGHT) margin.rightMargin = (int) VIEW_MIN_MARGIN;
+                if(side== Side.BOTTOM) margin.bottomMargin = (int) VIEW_MIN_MARGIN;
+            }else if (value > VIEW_MAX_MARGIN){
+                if(side== Side.LEFT) margin.leftMargin = (int) VIEW_MAX_MARGIN;
+                if(side== TOP) margin.topMargin = (int) VIEW_MAX_MARGIN;
                 if(side== Side.RIGHT) margin.rightMargin = (int) VIEW_MAX_MARGIN;
                 if(side== Side.BOTTOM) margin.bottomMargin = (int) VIEW_MAX_MARGIN;
                 isDisplayed = false;
@@ -309,29 +360,64 @@ public class Scroller {
         }
     }
 
+    public float ratio = 0;
     public void tongleTop(float ratio) {
-        tongle(Side.TOP, ratio);
+        this.ratio = ratio;
+        tongle(TOP, ratio);
     }
 
-    public void tongle(Side side, float ratio) {
+    public void tongleBottom(float ratio) {
+        tongle(BOTTOM, ratio);
+    }
+
+    private int min;
+    public void tongle(Side side, final float ratio) {
         final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
+        final int signe = (int) (ratio/Math.abs(ratio));
+        if(signe<0) min = -(view.getHeight()+layoutParams.topMargin);
         switch (side){
             case TOP:{
-                show_valueAnimator = ValueAnimator.ofInt(layoutParams.topMargin, (int) (ratio*(view.getHeight()+layoutParams.topMargin)));
+                show_valueAnimator = ValueAnimator.ofInt(layoutParams.topMargin, (int) (signe*ratio*(view.getHeight()+layoutParams.topMargin)));
                 show_valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                     @Override
                     public void onAnimationUpdate(ValueAnimator valueAnimator) {
                         int d = (int) valueAnimator.getAnimatedValue();
-                        layoutParams.topMargin = d;
-                        view.setLayoutParams(checkMarginValue(layoutParams, Side.TOP));
+                        layoutParams.topMargin = signe * d;
+                        view.setLayoutParams(checkMarginValue(layoutParams, TOP, signe<0?min:null));
+                        notifyListener();
+                    }
+                });
+                break;
+            }
+            case BOTTOM:{
+                show_valueAnimator = ValueAnimator.ofInt(layoutParams.bottomMargin, (int) (ratio*(view.getHeight()+layoutParams.bottomMargin)));
+                show_valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                        int d = (int) valueAnimator.getAnimatedValue();
+                        layoutParams.bottomMargin = d;
+                        view.setLayoutParams(checkMarginValue(layoutParams, BOTTOM));
+                        notifyListener();
                     }
                 });
                 break;
             }
         }
+        show_valueAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                notifyListener();
+            }
+        });
         show_valueAnimator.setDuration(TONGLE_DURATION);
         show_valueAnimator.setInterpolator(new DecelerateInterpolator());
         show_valueAnimator.start();
+    }
+
+    public float getMAxHeight() {
+        final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
+        return view.getHeight()+layoutParams.topMargin;
     }
 
     public void show() {
@@ -345,7 +431,7 @@ public class Scroller {
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 int d = (int) valueAnimator.getAnimatedValue();
                 layoutParams.topMargin = d;
-                view.setLayoutParams(checkMarginValue(layoutParams, Side.TOP));
+                view.setLayoutParams(checkMarginValue(layoutParams, TOP));
             }
         });
         show_valueAnimator.setDuration(TONGLE_DURATION);
@@ -362,7 +448,7 @@ public class Scroller {
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 int d = (int) valueAnimator.getAnimatedValue();
                 layoutParams.topMargin = d;
-                view.setLayoutParams(checkMarginValue(layoutParams, Side.TOP));
+                view.setLayoutParams(checkMarginValue(layoutParams, TOP));
             }
         });
         hide_valueAnimator.addListener(new AnimatorListenerAdapter() {
@@ -379,7 +465,7 @@ public class Scroller {
     }
 
     private void initStaticVar(Context context) {
-        TONGLE_DURATION = 300;
+        TONGLE_DURATION = 1000;//300
         MAX_MVT_DURATION = 500;
         PIXELS_PER_SECOND = 5;
         MAXIMUM_FING_VELOCITY = ViewConfiguration.get(context).getScaledMaximumFlingVelocity();
@@ -393,9 +479,4 @@ public class Scroller {
     public void setView(XLayout mView) {
         view = mView;
     }
-
-    private enum Side{
-        LEFT, TOP, RIGHT, BOTTOM;
-    }
-
 }

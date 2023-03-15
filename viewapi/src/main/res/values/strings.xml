@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">View API</string>
+
+    <string name="clear">"Tab"</string>
 </resources>

@@ -10,7 +10,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 26
         versionCode 1
-        versionName "1.0"
+        versionName "1.2"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -44,4 +44,23 @@ dependencies {
     //annotationProcessor 'com.github.bumptech.glide:compiler:4.2.0'
 
     //implementation "com.googlecode.mp4parser:isoparser:1.1.22"
+
+
+    //infos bulles
+    implementation 'com.tomergoldst.android:tooltips:1.0.10'
+
+    ///for loading
+    implementation 'com.nineoldandroids:library:2.4.0'
+}
+
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == 'com.android.support') {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion '25.3.0'
+            }
+        }
+    }
 }
