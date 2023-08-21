@@ -15,6 +15,7 @@
             <enum name="BOUND_NIKE_LEFT" value="9" />
             <enum name="BOUND_DIAMOND_RIGHT_BOTTOM" value="10" />
             <enum name="BOUND_DIAMOND_LEFT_BOTTOM" value="11" />
+            <enum name="BOUND_TRIANGLE" value="12" />
         </attr>
         <attr name="xl_bg_alpha" format="float"/>
         <attr name="xl_corner_rx" format="float"/>

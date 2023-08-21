@@ -134,7 +134,9 @@ public class XLayout extends RelativeLayout {
     }
 
     public void setBorderColor(int borderColor) {
+        borderPaint = null;
         this.borderColor = borderColor;
+        setup();
     }
 
     public void setShadowRad(int shadowRad) {
@@ -271,6 +273,11 @@ public class XLayout extends RelativeLayout {
 
     public void setBgAlpha(float mBgAlpha) {
         this.mBgAlpha = mBgAlpha;
+        setup();
+    }
+
+    public void setIbound(int ibound) {
+        this.ibound = ibound;
         setup();
     }
 
@@ -617,18 +624,19 @@ public class XLayout extends RelativeLayout {
                 mBound.right-shadowRad, mBound.bottom-shadowRad);
     }
 
-    private final int BOUND_ROUNDED_RECT = 0;
-    private final int BOUND_ZIG_ZAG_BOTTOM = 1;
-    private final int BOUND_ZIG_ZAG_LEFT_BOTTOM = 2;
-    private final int BOUND_SNAKE_TOP = 3;
-    private final int BOUND_DIAMOND_RIGHT = 4;
-    private final int BOUND_DIAMOND_LEFT = 5;
-    private final int BOUND_ARROW_RIGHT = 6;
-    private final int BOUND_ARROW_LEFT = 7;
-    private final int BOUND_CIRCLE = 8;
-    private final int BOUND_NIKE_LEFT = 9;
-    private final int BOUND_DIAMOND_LEFT_BOTTOM = 10;
-    private final int BOUND_DIAMOND_RIGHT_TOP = 11;
+    public static final int BOUND_ROUNDED_RECT = 0;
+    public static final int BOUND_ZIG_ZAG_BOTTOM = 1;
+    public static final int BOUND_ZIG_ZAG_LEFT_BOTTOM = 2;
+    public static final int BOUND_SNAKE_TOP = 3;
+    public static final int BOUND_DIAMOND_RIGHT = 4;
+    public static final int BOUND_DIAMOND_LEFT = 5;
+    public static final int BOUND_ARROW_RIGHT = 6;
+    public static final int BOUND_ARROW_LEFT = 7;
+    public static final int BOUND_CIRCLE = 8;
+    public static final int BOUND_NIKE_LEFT = 9;
+    public static final int BOUND_DIAMOND_LEFT_BOTTOM = 10;
+    public static final int BOUND_DIAMOND_RIGHT_TOP = 11;
+    public static final int BOUND_TRIANGLE = 12;
     private Path getBound(int i, RectF rect) {
         if(rect==null) return null;
         //
@@ -844,6 +852,47 @@ public class XLayout extends RelativeLayout {
                 s = getPointInRaw(rect.left, rect.bottom-offsetBl, rect.left, rect.top, ry);
                 //
                 p.quadTo(rect.left, rect.bottom-offsetBl, s.x, s.y);
+                p.close();
+                break;
+            case BOUND_TRIANGLE:
+                offset = (int) (1*rect.height()/2);
+                p = new Path();
+                ///
+                /**p.moveTo(rect.left, rect.top+ry);
+                s = getPointInRaw(rect.left, rect.top, rect.right, rect.top+offset, rx);
+                //
+                p.quadTo(rect.left, rect.top, s.x, s.y);
+                s = getPointInRaw(rect.right, rect.top+offset, rect.left, rect.top, rx);
+                p.lineTo(s.x, s.y);
+                s = getPointInRaw(rect.right, rect.top+offset, rect.left, rect.bottom, rx);
+                //
+                p.quadTo(rect.right, rect.top+offset, s.x, s.y);
+                s = getPointInRaw(rect.left, rect.bottom, rect.right, rect.top+offset, rx);
+                p.lineTo(s.x, s.y);
+                s = getPointInRaw(rect.left, rect.bottom, rect.left, rect.top, ry);
+                //
+                p.quadTo(rect.left, rect.bottom, s.x, s.y);
+                ///
+                p.close();*/
+                ///---
+                ///---
+                p.moveTo(rect.centerX(), rect.bottom);
+                p.lineTo(rect.left-rx, rect.bottom);
+                //
+                s = getPointInRaw(rect.left, rect.bottom, rect.centerX(), rect.top, rx);
+                p.quadTo(rect.left, rect.bottom, s.x, s.y);
+                //
+                s = getPointInRaw(rect.centerX(), rect.top, rect.left, rect.bottom, ry);
+                p.lineTo(s.x, s.y);
+                //
+                s = getPointInRaw(rect.centerX(), rect.top, rect.right, rect.bottom, ry);
+                p.quadTo(rect.centerX(), rect.top, s.x, s.y);
+                //
+                s = getPointInRaw(rect.right, rect.bottom, rect.centerX(), rect.top, rx);
+                p.lineTo(s.x, s.y);
+                //
+                p.quadTo(rect.right, rect.bottom, rect.right-rx, rect.bottom);
+                //
                 p.close();
                 break;
         }
